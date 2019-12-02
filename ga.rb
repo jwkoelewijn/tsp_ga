@@ -7,6 +7,10 @@ class GA
     5
   end
 
+  def self.time_criteria_weight
+    100000
+  end
+
   def self.elitism
     true
   end
@@ -17,7 +21,7 @@ class GA
     # if elitism is enabled we keep the best individual
     elitism_offset = 0
     if elitism
-      #puts "Saving fittest: #{population.fittest.distance}"
+      #puts "Saving fittest: #{population.fittest.duration}"
       new_population.save_tour(0, population.fittest)
       elitism_offset = 1
     end
@@ -78,10 +82,10 @@ class GA
 
   # Mutate a tour using swap mutation
   def self.mutate( tour )
-    (0...tour.size).each do | tourPos1 |
+    (1...tour.size).each do | tourPos1 |
       # Apply mutation rate
       if rand < mutation_rate
-        tourPos2 = Integer( rand * tour.size)
+        tourPos2 = Integer( rand * (tour.size - 1) + 1)
 
         city1 = tour.get_city( tourPos1 )
         city2 = tour.get_city( tourPos2 )

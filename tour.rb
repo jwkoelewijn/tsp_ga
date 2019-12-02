@@ -32,20 +32,22 @@ class Tour
   def set_city( tour_position, city )
     tour[tour_position] = city
 
-    # reset cached fitness and distance
-    @fitness = @distance = 0
+    # reset cached fitness and duration
+    @fitness = @duration = @duration_with_time_criteria = 0
   end
 
   def fitness
     if @fitness == 0
-      @fitness = 1.0/distance
+      @fitness = 1.0/duration_with_time_criteria
     end
     @fitness
   end
 
-  def distance
-    if @distance == 0
-      tour_distance = 0
+  def duration_with_time_criteria
+    if @duration_with_time_criteria == 0
+      failed_delivery_number = 0
+      
+      tour_duration = 0
       tour.each_with_index do |city, index|
         from_city = city
         if index + 1 < size
@@ -56,11 +58,35 @@ class Tour
           destination_city = get_city(0)
         end
 
-        tour_distance += from_city.distance_to(destination_city)
+        tour_duration += from_city.duration_to(destination_city)
+
+        if destination_city.time and (destination_city.time < tour_duration)
+          failed_delivery_number += 1
+        end
       end
-      @distance = tour_distance
+      @duration_with_time_criteria = tour_duration + (failed_delivery_number*GA.time_criteria_weight)
     end
-    @distance
+    @duration_with_time_criteria
+  end 
+
+  def duration
+    if @duration == 0
+      tour_duration = 0
+      tour.each_with_index do |city, index|
+        from_city = city
+        if index + 1 < size
+          destination_city = get_city(index+1)
+        else
+          # If it is the last city in the turn, set
+          # the first city as the destination
+          destination_city = get_city(0)
+        end
+
+        tour_duration += from_city.duration_to(destination_city)
+      end
+      @duration = tour_duration
+    end
+    @duration
   end
 
   def contains_city?( city )
@@ -76,7 +102,7 @@ class Tour
     tour.each do |city|
       gene_string << "#{city}|"
     end
-    "#{gene_string} => #{distance}"
+    "#{gene_string} => #{duration}"
   end
 
   def size
@@ -89,12 +115,13 @@ class Tour
   end
 
   def shuffle_tour!
-    @tour = tour.shuffle
+    @tour = tour[0..0] + tour[1..-1].shuffle
   end
 
   def set_tour( tour = [])
     @fitness = 0
-    @distance = 0
+    @duration = 0
+    @duration_with_time_criteria = 0
     @tour = tour
   end
 
