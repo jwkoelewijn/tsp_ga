@@ -3,6 +3,14 @@ class TourManager
     @destination_cities ||= []
   end
 
+  def self.duration_matrix
+    @duration_matrix
+  end
+
+  def self.set_duration_matrix matrix
+    @duration_matrix = matrix
+  end
+
   def self.add_city( city )
     destination_cities << city
   end
